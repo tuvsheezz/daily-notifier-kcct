@@ -1,12 +1,7 @@
-require 'discordrb/webhooks'
-require 'json'
-client = Discordrb::Webhooks::Client.new(url: Rails.application.credentials[:DISCORD_WEBHOOK_URL])
-
-namespace :dailynotifier do
-  desc 'Daily notifier'
-  task :just_do_it, :environment do
+class NotifierController < ApplicationController
+  def notify
+    require 'json'
     logger = Logger.new('log/notifier_log.log')
-
     file = File.open(Rails.root.join("problemlist/#{DateTime.now.strftime('%Y%m')}.json"))
     json_data = JSON.parse(file.read)
 
@@ -20,16 +15,24 @@ namespace :dailynotifier do
       listfound = true
       raise Errno::ENOENT unless linklist.any?
 
-      client.execute do |builder|
-        builder.content = linklist.join("\n")
-      end
+      callwebhook(linklist.join("\n"), params[:discord])
     end
 
     raise Errno::ENOENT unless listfound
   rescue Errno::ENOENT
-    client.execute { |builder| builder.content = 'Problem list not found!' }
+    callwebhook('Problem list not found!', params[:discord])
   rescue StandardError => e
-    client.execute { |builder| builder.content = 'DAILY NOTIFIER BUG!!!' }
+    callwebhook('DAILY NOTIFIER BUG!!!', params[:discord])
     logger.error e
+  end
+
+  def callwebhook(msg, discord_url)
+    require 'faraday'
+    conn = Faraday.new
+    conn.post do |req|
+      req.url discord_url
+      req.headers['Content-Type'] = 'application/json'
+      req.body = { content: msg }.to_json
+    end
   end
 end
