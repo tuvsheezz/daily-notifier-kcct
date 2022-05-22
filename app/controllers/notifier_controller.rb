@@ -5,7 +5,7 @@ class NotifierController < ApplicationController
     file = File.open(Rails.root.join("problemlist/#{DateTime.now.strftime('%Y%m')}.json"))
     json_data = JSON.parse(file.read)
 
-    today = DateTime.now.strftime('%Y/%m/%d')
+    today = DateTime.current.strftime('%Y/%m/%d')
 
     listfound = false
 
