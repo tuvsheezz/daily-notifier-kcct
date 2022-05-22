@@ -2,10 +2,10 @@ class NotifierController < ApplicationController
   def notify
     require 'json'
     logger = Logger.new('log/notifier_log.log')
-    file = File.open(Rails.root.join("problemlist/#{DateTime.now.strftime('%Y%m')}.json"))
+    file = File.open(Rails.root.join("problemlist/#{DateTime.current.strftime('%Y%m')}.json"))
     json_data = JSON.parse(file.read)
 
-    today = DateTime.now.strftime('%Y/%m/%d')
+    today = DateTime.current.strftime('%Y/%m/%d')
 
     listfound = false
 
